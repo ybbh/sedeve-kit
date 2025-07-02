@@ -25,7 +25,7 @@ use tokio::sync::mpsc::{UnboundedReceiver, UnboundedSender};
 use tokio::task::JoinHandle;
 use tokio::time::Duration;
 use tokio::time::sleep;
-use tracing::{debug, error, Instrument, trace, trace_span};
+use tracing::{error, Instrument, trace, trace_span};
 
 use crate::action::action_json::ActionJson;
 use crate::action::action_type::ActionType;
@@ -322,10 +322,10 @@ impl DTMServerHandler {
             let id_s;
             if node_id.is_none() {
                 id_s = format!("No.{}", seq_no);
-                debug!("DTM trace, {} action: {:?}", id_s.clone(),  value);
+                trace!("DTM trace, {} action: {:?}", id_s.clone(),  value);
             } else {
                 id_s = format!("No.{}.{}", seq_no, seq_no_node);
-                debug!("DTM trace, Node:{:?}, {} action: {:?}", node_id, id_s.clone(),  value);
+                trace!("DTM trace, Node:{:?}, {} action: {:?}", node_id, id_s.clone(),  value);
             }
 
             let action_type = value.action_type()?;
@@ -354,7 +354,7 @@ impl DTMServerHandler {
                 let dest_node_id = json_value.dest_nid()?;
                 let action_message = SerdeJsonString::from_json_value(
                     json_value.message_payload_json_value()?);
-                debug!("action message: {:?}", action_message);
+                trace!("action message: {:?}", action_message);
                 let m = Message::new(action_message, dtm_server_node_id, dest_node_id);
                 sender.send(m, OptSend::default().enable_no_wait(false))
                     .instrument(trace_span!("message to node"))

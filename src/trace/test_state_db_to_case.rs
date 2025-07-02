@@ -7,18 +7,19 @@ mod test {
     use crate::trace::gen_case::{DataInput, gen_case};
     use crate::trace::read_json::tla_constant_mapping;
     use crate::trace::trace_reader::TraceReader;
+    use crate::util::tmp::tmp_dir;
 
     #[test]
     fn test_db_to_trace() {
         info!("test_db_to_trace");
-        let output_db_path = format!("/tmp/trace_{}.db", Uuid::new_v4().to_string());
+        let output_db_path= tmp_dir(&format!("trace_{}.db", Uuid::new_v4().to_string()));
         db_to_trace("state.db".to_string(), output_db_path, false, 701);
     }
 
     #[test]
     fn test_db_to_setup_init_trace() {
         info!("test_db_to_setup_init_trace");
-        let output_db_path = format!("/tmp/trace_setup_init_{}.db", Uuid::new_v4().to_string());
+        let output_db_path = tmp_dir(&format!("trace_setup_init_{}.db", Uuid::new_v4().to_string()));
         db_to_trace("state.db".to_string(), output_db_path, true, 1830);
     }
 
@@ -37,6 +38,7 @@ mod test {
                  None,
                  None,
                  setup_initialize,
+                true,
         ).unwrap();
         let vec = TraceReader::read_trace(output).unwrap();
         assert_eq!(vec.len(), expected_size);

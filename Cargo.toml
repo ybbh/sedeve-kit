@@ -1,6 +1,6 @@
 [[bin]]
 name = "sedeve_player"
-path = "src/player/bin/main.rs"
+path = "src/player/main.rs"
 
 [[bin]]
 name = "sedeve_trace_gen"

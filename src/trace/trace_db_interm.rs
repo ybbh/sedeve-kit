@@ -21,6 +21,11 @@ pub struct TraceDBInterm {
     conn: Mutex<Connection>,
 }
 
+
+/// the 3 stage to generate trace set
+///     1. convert TLA+ output kind-object format to action format
+///     2. generate trace path
+///     3. generate trace format test case
 #[derive(Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Stage {
     WriteAction,

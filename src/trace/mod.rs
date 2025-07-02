@@ -13,9 +13,10 @@ mod cover_walk_path;
 mod subgraph_path;
 mod test_trace_reader;
 pub mod to_json_value;
-pub mod action_from_state_db;
+pub mod to_action;
 mod test_state_db_to_case;
 pub mod trace_db_interm;
 pub mod trace_db;
 pub mod fuzz_graph;
+pub mod trace_gen_portal;
 

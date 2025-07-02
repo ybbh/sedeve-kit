@@ -9,7 +9,11 @@ use serde_json::{Map, Value};
 
 use crate::action::constant;
 
-/* Type code for values. */
+///
+/// Kind code of TLA+ object
+/// The code value is a number consistent with tlc2/value/ValueConstants.java
+///   https://github.com/tlaplus/tlaplus/blob/master/tlatools/org.lamport.tlatools/src/tlc2/value/ValueConstants.java
+
 const BOOL_VALUE: u32 = 0;
 const INT_VALUE: u32 = BOOL_VALUE + 1;
 const REAL_VALUE: u32 = INT_VALUE + 1;
@@ -43,7 +47,7 @@ const LAZY_VALUE: u32 = UNDEF_VALUE + 1;
 #[allow(dead_code)]
 const DUMMY_VALUE: u32 = LAZY_VALUE + 1;
 
-pub fn get_typed_value(value: Value, constant_dict_map: &HashMap<String, Value>) -> Res<Value> {
+pub fn format_kind_object(value: Value, constant_dict_map: &HashMap<String, Value>) -> Res<Value> {
     let mut value = value;
     let map = res_option(value.as_object_mut())?;
     let kind = res_option(map.remove("kind"))?;
@@ -103,8 +107,8 @@ fn get_fcn_value(value: Value, constant_dict_map: &HashMap<String, Value>) -> Re
         };
         let domain = res_option(kv.remove("domain"))?;
         let value = res_option(kv.remove("value"))?;
-        let domain1 = get_typed_value(domain, constant_dict_map)?;
-        let value1 = get_typed_value(value, constant_dict_map)?;
+        let domain1 = format_kind_object(domain, constant_dict_map)?;
+        let value1 = format_kind_object(value, constant_dict_map)?;
         vec.push((domain1, value1))
     }
 
@@ -185,7 +189,7 @@ fn _get_array(value: Value, constant_dict_map: &HashMap<String, Value>) -> Res<V
     };
     let mut vec = vec![];
     for v in array {
-        let v1 = get_typed_value(v, &constant_dict_map)?;
+        let v1 = format_kind_object(v, &constant_dict_map)?;
         vec.push(v1);
     }
     Ok(vec)
@@ -208,7 +212,7 @@ fn get_record_value(value: Value, constant_dict_map: &HashMap<String, Value>) ->
     };
     let mut map1 = Map::new();
     for (k, v) in map {
-        let v1 = get_typed_value(v, &constant_dict_map)?;
+        let v1 = format_kind_object(v, &constant_dict_map)?;
         map1.insert(k, v1);
     }
     Ok(Value::Object(map1))

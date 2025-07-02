@@ -11,7 +11,7 @@ use tracing::info;
 
 use crate::action::action_message::ActionMessage;
 use crate::action::tla_actions::TLAActionSeq;
-use crate::action::tla_typed_value::get_typed_value;
+use crate::action::tla_typed_value::format_kind_object;
 use crate::trace::action_graph::ActionGraph;
 use crate::trace::read_json::tla_constant_mapping;
 use crate::trace::trace_db_interm::{Stage, TraceDBInterm};
@@ -26,7 +26,7 @@ pub fn read_actions<F>(path: String, dict: &HashMap<String, Value>, fn_handle_ac
     while let Some(row) = res_sqlite(rows.next())? {
         let json: String = res_sqlite(row.get(0))?;
         let value: Value = res_parse(serde_json::from_str(json.as_str()))?;
-        let value = get_typed_value(value, dict)?;
+        let value = format_kind_object(value, dict)?;
         fn_handle_action(value)?;
     }
     Ok(())
@@ -76,7 +76,7 @@ fn read_action_batch<F>(
     while let Some(row) = res_sqlite(rows.next())? {
         let json: String = res_sqlite(row.get(0))?;
         let value: Value = res_parse(serde_json::from_str(json.as_str()))?;
-        let value = get_typed_value(value, dict)?;
+        let value = format_kind_object(value, dict)?;
         batch.push(value);
         if batch.len() >= batch_rows {
             fn_handle_action(batch)?;
@@ -91,7 +91,7 @@ fn read_action_batch<F>(
     Ok(())
 }
 
-pub fn state_db_to_from_action(path: String, dict: HashMap<String, Value>, output_path: String, sqlite_cache_size: Option<u64>) -> Res<ActionGraph<i64>> {
+pub fn state_to_action(state_db_path: String, dict: HashMap<String, Value>, output_path: String, sqlite_cache_size: Option<u64>) -> Res<ActionGraph<i64>> {
     let db = RefCell::new(TraceDBInterm::new(output_path, None, sqlite_cache_size)?);
     let stage = {
         let db_ref = db.borrow();
@@ -120,7 +120,7 @@ pub fn state_db_to_from_action(path: String, dict: HashMap<String, Value>, outpu
         };
 
         let inst = Instant::now();
-        read_action_batch(path, 10000, &dict, &f)?;
+        read_action_batch(state_db_path, 10000, &dict, &f)?;
         let duration = inst.elapsed();
         {
             let db_ref = db.borrow();

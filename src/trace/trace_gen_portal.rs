@@ -2,8 +2,8 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
-use sedeve_kit::trace::gen_case::{DataInput, gen_case};
-use sedeve_kit::trace::read_json;
+use crate::trace::gen_case::{DataInput, gen_case};
+use crate::trace::read_json;
 
 #[derive(clap::ValueEnum, Clone, Debug)]
 enum TestType {
@@ -19,13 +19,13 @@ pub struct GenArgs {
     #[arg(short, long)]
     state_db_path: Option<String>,
 
-    /// Output trace path
+    /// Output trace database path
     #[arg(short, long)]
     out_trace_db_path: Option<String>,
 
-    /// Type intermediate database path
+    /// Output action database path
     #[arg(short, long)]
-    intermediate_db_path: Option<String>,
+    out_action_db_path: Option<String>,
 
     /// Path of the json file stores the constant value map
     #[arg(short, long)]
@@ -42,6 +42,10 @@ pub struct GenArgs {
     #[arg(short = 'c', long)]
     /// SQLite cache size in MBs.
     sqlite_cache_size: Option<u64>,
+
+    /// Generate action DB only, default value is false, otherwise only generate trace
+    #[arg(short = 't', long, default_value = "false")]
+    action_only: bool,
 }
 
 
@@ -53,7 +57,7 @@ pub fn portal(args: GenArgs) {
     };
 
     let state_db_path: Option<String> = args.state_db_path;
-    let intermediate_db_path: Option<String> = args.intermediate_db_path;
+    let intermediate_db_path: Option<String> = args.out_action_db_path;
     let setup_initialize_state: bool = args.setup_initialize_state;
     let sqlite_cache_size = args.sqlite_cache_size;
     let path_input = if state_db_path.is_some() {
@@ -90,32 +94,33 @@ pub fn portal(args: GenArgs) {
         intermediate_db_path,
         sqlite_cache_size,
         setup_initialize_state,
+        true
     ).unwrap();
 }
 
 #[cfg(test)]
 mod test {
     use std::fs;
-
     use tracing::info;
     use uuid::Uuid;
 
-    use sedeve_kit::data::path::_test::_test_data_path;
-
-    use crate::trace_gen_portal::{GenArgs, portal};
+    use crate::data::path::_test::_test_data_path;
+    use crate::util::tmp::tmp_dir;
+    use crate::trace::trace_gen_portal::{GenArgs, portal};
 
     #[test]
     fn test_trace_portal_1() {
         info!("test_trace_portal_1");
-        let output_db_path = format!("/tmp/trace_{}.db", Uuid::new_v4().to_string());
+        let output_db_path = tmp_dir(&format!("trace_{}.db", Uuid::new_v4().to_string()));
         let args = GenArgs {
             state_db_path: Some(_test_data_path("state.db".to_string())),
             out_trace_db_path: Some(output_db_path),
-            intermediate_db_path: None,
+            out_action_db_path: None,
             map_const_path: Some(_test_data_path("map_const.json".to_string())),
             remove_intermediate: false,
             setup_initialize_state: false,
             sqlite_cache_size: None,
+            action_only: false,
         };
         portal(args);
     }
@@ -123,16 +128,17 @@ mod test {
     #[test]
     fn test_trace_portal_2() {
         info!("test_trace_portal_2");
-        let db_path = format!("/tmp/state_{}.db", Uuid::new_v4().to_string());
+        let db_path = tmp_dir(&format!("state_{}.db", Uuid::new_v4().to_string()));
         fs::copy(_test_data_path("state.db".to_string()), db_path.clone()).unwrap();
         let args = GenArgs {
             state_db_path: Some(db_path),
             out_trace_db_path: None,
-            intermediate_db_path: None,
+            out_action_db_path: None,
             map_const_path: Some(_test_data_path("map_const.json".to_string())),
             remove_intermediate: false,
             setup_initialize_state: false,
             sqlite_cache_size: None,
+            action_only: false,
         };
         portal(args);
     }

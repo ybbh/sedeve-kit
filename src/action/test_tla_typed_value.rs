@@ -3,7 +3,7 @@ mod test {
     use serde_json::Value;
 
     use crate::action::constant;
-    use crate::action::tla_typed_value::get_typed_value;
+    use crate::action::tla_typed_value::format_kind_object;
 
     const S1: &str =
         r###"
@@ -1217,7 +1217,7 @@ mod test {
 
     fn get_typed(v: &str) -> Value {
         let value: Value = serde_json::from_str(v).unwrap();
-        let value = get_typed_value(value, &constant::__TEST_NODE_ID_MAP.clone()).unwrap();
-        return value;
+        let value = format_kind_object(value, &constant::__TEST_NODE_ID_MAP.clone()).unwrap();
+        value
     }
 }

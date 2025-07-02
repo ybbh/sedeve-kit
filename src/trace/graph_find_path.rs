@@ -2,7 +2,6 @@ use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 use std::hash::Hash;
 use std::time::Instant;
-
 use rand::{Rng, thread_rng};
 use rand::distributions::{Distribution, Standard};
 
@@ -30,7 +29,7 @@ pub fn graph_find_path<V,  FP>(
     let start = Instant::now();
 
     let _find_path_start_from_root = |vec: &Vec<V>| {
-        info!("path : {:?}", vec);
+        trace!("path : {:?}", vec);
         fn_find_path(vec.clone());
     };
 

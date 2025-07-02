@@ -4,9 +4,9 @@ use std::time::Instant;
 
 use scupt_util::res::Res;
 use serde_json::Value;
-use tracing::info;
+use tracing::{info, trace};
 
-use crate::trace::action_from_state_db::state_db_to_from_action;
+use crate::trace::to_action::state_to_action;
 use crate::trace::action_graph::ActionGraph;
 use crate::trace::trace_builder::{OptBuild, TraceBuilder};
 use crate::trace::trace_db_interm::{Stage, TraceDBInterm};
@@ -32,6 +32,7 @@ pub fn gen_case(
     opt_intermediate_path: Option<String>,
     sqlite_cache_size: Option<u64>,
     initialize_setup: bool,
+    gen_trace:bool,
 ) -> Res<()> {
     let intermediate = match opt_intermediate_path {
         Some(p) => { p }
@@ -39,31 +40,33 @@ pub fn gen_case(
             format!("{}.intermediate.db", data_output)
         }
     };
-    info!("use const mapping: {:?}", dict);
+    trace!("use const mapping: {:?}", dict);
     let inst = Instant::now();
     match data_input {
         DataInput::StateDB(path) => {
-            let graph = state_db_to_from_action(path.clone(), dict, intermediate.clone(), sqlite_cache_size)?;
+            let graph = state_to_action(path.clone(), dict, intermediate.clone(), sqlite_cache_size)?;
             let duration = inst.elapsed();
             info!("Time elapsed to read from state DB {} and write actions, time costs: {:?}", path, duration);
 
-            let inst = Instant::now();
-            action_graph_output_to_db(&graph, intermediate.clone(), sqlite_cache_size)?;
-            let duration = inst.elapsed();
-            info!("Time elapsed to generate path, time costs: {:?}",  duration);
+            if gen_trace {
+                let inst = Instant::now();
+                action_graph_output_to_db(&graph, intermediate.clone(), sqlite_cache_size)?;
+                let duration = inst.elapsed();
+                info!("Time elapsed to generate path, time costs: {:?}",  duration);
+
+                let inst = Instant::now();
+                let opt = OptBuild {
+                    initialize_setup,
+                    sqlite_cache_size,
+                };
+                TraceBuilder::build(intermediate, data_output, opt)?;
+
+                let duration = inst.elapsed();
+                info!("Time elapsed to gen final trace, time costs: {:?}", duration);
+            }
         }
     }
 
-
-    let inst = Instant::now();
-    let opt = OptBuild {
-        initialize_setup,
-        sqlite_cache_size,
-    };
-    TraceBuilder::build(intermediate, data_output, opt)?;
-
-    let duration = inst.elapsed();
-    info!("Time elapsed to gen final trace, time costs: {:?}", duration);
     Ok(())
 }
 

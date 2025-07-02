@@ -26,7 +26,7 @@ $trace(A) = s_0, \pi_1, s_1, \pi_2, s_2, ...,  \pi_r, s_r$
 In most cases, we are only interested in the first state, $s_0$, and the sequence of the series of actions, $\pi_1, \pi_2, ..., \pi_r$
 
 Output the sequence $s_0, \pi_1, \pi_2, ..., \pi_r$ to a file for the *deterministic
-player [action-player](../src/player/bin/main.rs)*.
+player [action-player](../src/player/main.rs)*.
 
 We define `__action__` variable in each TLA+ specification and used to dump states and actions for generating test cases.
 
